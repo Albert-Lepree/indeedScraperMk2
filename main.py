@@ -35,11 +35,13 @@ def main():
             # get link to next page
             nextPage = [k for k in links if re.search('[\/](jobs\?q=data\+analyst&start=)', k)]
 
+            # appends last index of list to another list (right most button => next page button)
             nextPages.append(nextPage[-1])
 
     # calls the get job links method to get each page link
     theLinks = []
 
+    # gets each job link from each page of job links
     for j in range(len(nextPages)):
         theLinks = theLinks + getJobLinks(nextPages[j])
 
@@ -47,12 +49,14 @@ def main():
     counter = [0,0,0,0,0] # initializes counter variable
     # loops k times for k links and sums number of times target word was found in each link
     for k in range(len(theLinks)):
+        # adds index of the array to its corresponding index: [1, 2, 3] + [1, 1, 1] = [2, 3, 4]
         for index, integer in enumerate(readLinks(theLinks[k])):
             counter[index] += integer
 
     print(counter)
     print(len(theLinks))
 
+    # plots the data to a bar graph
     df = pd.DataFrame({'lab': ['SQL', 'Power BI', 'Tableau', 'Python', 'Excel' ], 'val': [counter[0], counter[1], counter[2], counter[3], counter[4]]})
     ax = df.plot.bar(x='lab', y='val', rot=0)
     plt.show()
@@ -81,13 +85,17 @@ def readLinks(jobURL):
 
     counter=[]
 
+    # split and clean
     list = requests.get(jobURL).text.split()
+
+    # counts each skill from the job description
     sqlList = [w for w in list if re.findall('(.*)([Ss][Qq][Ll])(.*)', w)]
     pbiList = [w for w in list if re.findall('(.*)([Pp]ower[ ]?[Bb][Ii])(.*)', w)]
     tbluList = [w for w in list if re.findall('(.*)([tT]ableau)(.*)', w)]
-    pthnList = [w for w in list if re.findall('(.*)([Pp]ython,)(.*)', w)]
+    pthnList = [w for w in list if re.findall('(.*)([Pp]ython,)(.*)', w)] # Issue: sometimes increments/identifies when it is not on the page?
     xlList = [w for w in list if re.findall('(.*)(Excel)(.*)', w)]
 
+    # if skill shows up increment corresponding array index by 1
     if sqlList:
         counter.append(1)
     else:
