@@ -1,13 +1,15 @@
+import numpy as np
 import requests
 from bs4 import BeautifulSoup
 import re
 import urllib.request
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer
 
+bowList = []
 
 def main():
-
     with urllib.request.urlopen('https://www.indeed.com/jobs?q=data%20analyst&l&vjk=42384986658311ac') as f:
         source = f.read()
 
@@ -23,7 +25,7 @@ def main():
     nextPages.append(nextPage[-1])
 
     #get links to first i pages
-    for i in range(6):
+    for i in range(0):
         with urllib.request.urlopen(f'https://www.indeed.com{nextPage[-1]}') as f:
             source = f.read()
 
@@ -58,6 +60,7 @@ def main():
     print(counter)
     print(numLinks)
 
+    bow(bowList)
 
 
     # plots the data to a bar graph
@@ -94,7 +97,11 @@ def readLinks(jobURL):
     counter=[]
 
     # split and clean
-    list = requests.get(jobURL).text.split()
+    list = requests.get(jobURL).text
+
+    bowList.append(list)
+
+    list = list.split()
 
 
     # counts each skill from the job description
@@ -124,6 +131,9 @@ def readLinks(jobURL):
 
     if pthnList:
         counter.append(1)
+        if len(pthnList)>1:
+            print(pthnList)
+            print(jobURL)
     else:
         counter.append(0)
 
@@ -139,6 +149,22 @@ def readLinks(jobURL):
 
     #print(counter)
     return counter
+
+def bow(bowList):
+    text_data = np.array(bowList)
+
+    count = CountVectorizer()
+    bag_of_words = count.fit_transform(text_data)
+
+    feature_names = count.get_feature_names_out()
+
+    # pd.set_option("display.max_rows", 202, "display.max_columns", None)
+    df = pd.DataFrame(bag_of_words.toarray(), columns=feature_names)
+
+
+    print(df.loc[:, ['python', 'sql', 'tableau', 'excel']])
+
+
 
 if __name__ == '__main__':
     main()
